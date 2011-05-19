@@ -43,13 +43,6 @@
 
 @end
 
-//
-//	Constants
-//
-
-var kHKDataStoreProtocol = "http://";
-var kHKDataStoreHost = "127.0.0.1:8000";
-var kHKDataStoreBaseURL = "api/1";
 
 //
 //	Singleton instance
@@ -61,6 +54,10 @@ var gHKDataStore = nil;
 //
 @implementation HKDataStore : CPObject
 {
+    CPString            protocol @accessors;     // e.g. http://
+    CPString            host @accessors;         // e.g. www.example.com
+    CPString            basePath @accessors;     // e.g. api/v1
+
     CPDictionary		types;
     CPDictionary		objects;
     CPDictionary		controllers;
@@ -104,6 +101,11 @@ var gHKDataStore = nil;
 	}
 	
 	return self;
+}
+
+- (CPString)baseURL
+{
+    return [self kHKDataStoreProtocol] + [self host] + "/" + [self basePath] + "/";
 }
 
 - (void)addObserver:(id)observer selector:(SEL)sel forDataObjectNames:(CPArray)objectNames
@@ -390,7 +392,7 @@ var gHKDataStore = nil;
 
 - (HKURLRequest)URLRequestForGETOperationForDataObjectClass:(Class)objectClass
 {
-	var base = kHKDataStoreProtocol + kHKDataStoreHost + "/" + kHKDataStoreBaseURL + "/";
+	var base = [self baseURL];
 	var url = base + [objectClass baseURL];
 	var request = nil;
 	
@@ -402,7 +404,7 @@ var gHKDataStore = nil;
 
 - (HKURLRequest)URLRequestForPOSTOperationForDataObject:(HKDataObject)object
 {
-	var base = kHKDataStoreProtocol + kHKDataStoreHost + "/" + kHKDataStoreBaseURL + "/";
+	var base = [self baseURL];
 	var url = base + [[object class] baseURL];
 	var request = nil;
 	var parameters = nil;
@@ -439,7 +441,7 @@ var gHKDataStore = nil;
 
 - (HKURLRequest)URLRequestForPUTOperationForDataObject:(HKDataObject)object
 {
-	var base = kHKDataStoreProtocol + kHKDataStoreHost + "/" + kHKDataStoreBaseURL + "/";
+	var base = [self baseURL];
 	var url = base + [object instanceURL];
 	var request = nil;
 	var parameters = nil;
@@ -476,7 +478,7 @@ var gHKDataStore = nil;
 
 - (HKURLRequest)URLRequestForDELETEOperationForDataObject:(HKDataObject)object
 {
-	var base = kHKDataStoreProtocol + kHKDataStoreHost + "/" + kHKDataStoreBaseURL + "/";
+	var base = [self baseURL];
 	var url = base + [object instanceURL];
 	var request = nil;
 	
