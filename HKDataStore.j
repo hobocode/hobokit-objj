@@ -57,6 +57,7 @@ var gHKDataStore = nil;
     CPString            protocol @accessors;     // e.g. http://
     CPString            host @accessors;         // e.g. www.example.com
     CPString            basePath @accessors;     // e.g. api/v1
+    CPString            baseKey @accessors; // base key where objects is stored in returned JSON object from API
 
     CPDictionary        types;
     CPDictionary        objects;
@@ -515,11 +516,20 @@ var gHKDataStore = nil;
         {
             var key = [keys objectAtIndex:0];
             var set = [objects objectForKey:key];
-            var enumerator = [[result object] objectEnumerator];
+            var enumerator = nil;
             var aenumerator = nil;
             var json = nil;
             var instance = nil;
             var attribute = nil;
+
+            if ( [self baseKey] != nil )
+            {
+                enumerator = [[[result object] objectForKey:[self baseKey]] objectEnumerator];
+            }
+            else
+            {
+                enumerator = [[result object] objectEnumerator];
+            }
 
             console.log( "HKDataStore::AFTER_GET->Objects BEFORE INSERT (" + key + "): " + set);
 
