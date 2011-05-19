@@ -105,7 +105,7 @@ var gHKDataStore = nil;
 
 - (CPString)baseURL
 {
-    return [self kHKDataStoreProtocol] + [self host] + "/" + [self basePath] + "/";
+    return [self protocol] + [self host] + "/" + [self basePath] + "/";
 }
 
 - (void)addObserver:(id)observer selector:(SEL)sel forDataObjectNames:(CPArray)objectNames
