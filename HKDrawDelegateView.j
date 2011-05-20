@@ -22,15 +22,20 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-@import <HoboKit/HKGradientView.j>
-@import <HoboKit/HKDrawDelegateView.j>
+@import <AppKit/CPView.j>
 
-@import <HoboKit/HKURLRequest.j>
-@import <HoboKit/HKURLRequestQueue.j>
-@import <HoboKit/HKURLResult.j>
+@implementation HKDrawDelegateView : CPView 
+{ 
+    id _delegate @accessors(property=delegate);
+}
 
-@import <HoboKit/HKDataObject.j>
-@import <HoboKit/HKDataStoreOperation.j>
-@import <HoboKit/HKDataStore.j>
+- (void)drawRect:(CGRect)theFrame
+{
+    if ([self delegate] && [[self delegate] respondsToSelector:@selector(view:drawInContext:)])
+    {
+        var context = [[CPGraphicsContext currentContext] graphicsPort];
+        [[self delegate] view:self drawInContext:context];
+    }
+}
 
-@import <HoboKit/CPString+HKAdditions.j>
+@end
