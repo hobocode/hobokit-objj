@@ -93,7 +93,7 @@
 		{
 			try
 			{
-				object = CPJSObjectCreateWithJSON( currentData );
+				object = [currentData objectFromJSON];
 			}
 			catch ( exception )
 			{

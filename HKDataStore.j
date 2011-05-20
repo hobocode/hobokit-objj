@@ -57,7 +57,9 @@ var gHKDataStore = nil;
     CPString            protocol @accessors;     // e.g. http://
     CPString            host @accessors;         // e.g. www.example.com
     CPString            basePath @accessors;     // e.g. api/v1
-    CPString            baseKey @accessors; // base key where objects is stored in returned JSON object from API
+    CPString            baseKey @accessors;      // base key where objects is stored in returned JSON object from API
+
+    CPDictionary        additionalHTTPHeaders @accessors;
 
     CPDictionary        types;
     CPDictionary        objects;
@@ -400,6 +402,8 @@ var gHKDataStore = nil;
     request = [HKURLRequest requestWithURL:url target:self selector:@selector(GETOperationDidComplete:) context:objectClass];
     [request setHTTPMethod:@"GET"];
 
+    [self addAdditionalHTTPHeadersToRequest:request];
+
     return request;
 }
 
@@ -436,6 +440,8 @@ var gHKDataStore = nil;
     {
         [request setParameters:parameters];
     }
+
+    [self addAdditionalHTTPHeadersToRequest:request];
 
     return request;
 }
@@ -474,6 +480,8 @@ var gHKDataStore = nil;
         [request setParameters:parameters];
     }
 
+    [self addAdditionalHTTPHeadersToRequest:request];
+
     return request;
 }
 
@@ -486,7 +494,26 @@ var gHKDataStore = nil;
     request = [HKURLRequest requestWithURL:url target:self selector:@selector(DELETEOperationDidComplete:) context:object];
     [request setHTTPMethod:@"DELETE"];
 
+    [self addAdditionalHTTPHeadersToRequest:request];
+
     return request;
+}
+
+- (void)addAdditionalHTTPHeadersToRequest:(HKURLRequest)request
+{
+    if ( [self additionalHTTPHeaders] )
+    {
+        var headers = [self additionalHTTPHeaders],
+            enumerator = [headers keyEnumerator],
+            field = nil,
+            val = nil;
+
+        while ( field = [enumerator nextObject] )
+        {
+            val = [headers objectForKey:field];
+            [request setValue:val forHTTPHeaderField:field];
+        }
+    }
 }
 
 //
@@ -524,7 +551,8 @@ var gHKDataStore = nil;
 
             if ( [self baseKey] != nil )
             {
-                enumerator = [[[result object] objectForKey:[self baseKey]] objectEnumerator];
+                var o = [result object]; // expect that [result object] is a JS object
+                enumerator = [o[[self baseKey]] objectEnumerator];
             }
             else
             {
