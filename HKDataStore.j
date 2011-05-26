@@ -206,6 +206,17 @@ var gHKDataStore = nil;
     [self updateControllersForDataObjectName:objectName];
 }
 
+- (void)unregisterArrayController:(CPArrayController)arrayController forDataObjectName:(CPString)objectName
+{
+    var set = [controllers objectForKey:objectName];
+
+    if ( set != nil )
+    {
+        [set removeObject:arrayController];
+    }
+}
+
+
 - (void)refreshForDataObjectName:(CPString)objectName
 {
     var oclass = [types objectForKey:objectName];
