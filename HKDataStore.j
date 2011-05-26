@@ -54,22 +54,23 @@ var gHKDataStore = nil;
 //
 @implementation HKDataStore : CPObject
 {
-    CPString            protocol @accessors;     // e.g. http://
-    CPString            host @accessors;         // e.g. www.example.com
-    CPString            basePath @accessors;     // e.g. api/v1
-    CPString            baseKey @accessors;      // base key where objects is stored in returned JSON object from API
+    CPString                protocol @accessors;     // e.g. http://
+    CPString                host @accessors;         // e.g. www.example.com
+    CPString                basePath @accessors;     // e.g. api/v1
+    CPString                baseKey @accessors;      // base key where objects is stored in returned JSON object from API
 
-    CPDictionary        additionalHTTPHeaders @accessors;
+    CPDictionary            additionalHTTPHeaders @accessors;
 
-    CPDictionary        types;
-    CPDictionary        objects;
-    CPDictionary        controllers;
-    CPDictionary        observers;
-    CPDictionary        dependencies;
-    CPSet               loaded;
-    CPArray             operations;
-    HKURLRequestQueue   queue;
-    var                 idle;
+    CPDictionary            types;
+    CPDictionary            objects;
+    CPDictionary            controllers;
+    CPDictionary            observers;
+    CPDictionary            dependencies;
+    CPSet                   loaded;
+    CPArray                 operations;
+    HKDataStoreOperation    current;
+    HKURLRequestQueue       queue;
+    var                     idle;
 }
 
 //
@@ -330,7 +331,9 @@ var gHKDataStore = nil;
 - (void)performNextOperation
 {
     console.log( "HKDataStore::performNextOperation (idle='" + idle + "', operations='" + [operations count] + "')");
-
+    
+    current = nil;
+    
     if ( [operations count] == 0 )
         return;
 
@@ -339,26 +342,41 @@ var gHKDataStore = nil;
 
     idle = false;
 
-    var operation = [operations objectAtIndex:0]; [operations removeObjectAtIndex:0];
+    current = [operations objectAtIndex:0]; [operations removeObjectAtIndex:0];
 
-    switch ( [operation type] )
+    switch ( [current type] )
     {
         case kHKDataStoreOperationGET:
-            [queue performRequest:[self URLRequestForGETOperationForDataObjectClass:[operation object]]];
+            [queue performRequest:[self URLRequestForGETOperationForDataObjectClass:[current object]]];
             break;
 
         case kHKDataStoreOperationPOST:
-            [queue performRequest:[self URLRequestForPOSTOperationForDataObject:[operation object]]];
+            [queue performRequest:[self URLRequestForPOSTOperationForDataObject:[current object]]];
             break;
 
         case kHKDataStoreOperationPUT:
-            [queue performRequest:[self URLRequestForPUTOperationForDataObject:[operation object]]];
+            [queue performRequest:[self URLRequestForPUTOperationForDataObject:[current object]]];
             break;
 
         case kHKDataStoreOperationDELETE:
-            [queue performRequest:[self URLRequestForDELETEOperationForDataObject:[operation object]]];
+            [queue performRequest:[self URLRequestForDELETEOperationForDataObject:[current object]]];
             break;
     }
+}
+
+- (BOOL)hasQueuedOperationOfType:(int)type object:(HKDataObject)object
+{
+    var retval = NO;
+    var enumerator = [operations objectEnumerator];
+    var operation = nil;
+    
+    while ( (operation = [enumerator nextObject]) != nil )
+    {
+        if ( [operation type] == type && [operation object] == object )
+            return YES;
+    }
+    
+    return NO;
 }
 
 - (void)updateControllersForDataObjectName:(CPString)objectName
@@ -523,7 +541,13 @@ var gHKDataStore = nil;
 - (void)observeValueForKeyPath:(CPString)keyPath ofObject:(id)object change:(CPDictionary)change context:(id)context
 {
     console.log( "HKDataStore::CHANGE->Object (" + object + ") SET '" + keyPath + "' TO '" + object[keyPath] + "'");
-
+    
+    if ( [self hasQueuedOperationOfType:kHKDataStoreOperationPUT object:object] )
+        return;
+        
+    if ( [self hasQueuedOperationOfType:kHKDataStoreOperationPOST object:object] )
+        return;
+    
     [operations addObject:[HKDataStoreOperation operationWithType:kHKDataStoreOperationPUT object:object]];
     [self performNextOperation];
 }
