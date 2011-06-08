@@ -41,6 +41,11 @@
 	return nil;
 }
 
++ (BOOL)readOnly
+{
+    return NO;
+}
+
 //
 //	Init
 //
@@ -62,6 +67,24 @@
 - (CPString)instanceURL
 {
 	return nil;
+}
+
+- (CPArray)parametersForFunctionName:(CPString)functionName
+{
+    return nil;
+}
+
+- (void)callFunctionWithName:(CPString)functionName
+{
+    var all = [CPArray arrayWithObject:functionName];
+    var params = [self parametersForFunctionName:functionName];
+    
+    if ( params != nil )
+    {
+        [all addObjectsFromArray:params];
+    }
+    
+    [[HKDataStore sharedDataStore] queueOperation:[HKDataStoreOperation operationWithType:HKDataStoreOperationFUNCTION object:self parameters:all]];
 }
 
 - (unsigned)hash

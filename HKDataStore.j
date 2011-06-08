@@ -261,6 +261,13 @@ var gHKDataStore = nil;
 - (HKDataObject)newDataObjectForName:(CPString)objectName initialValues:(CPDictionary)values
 {
     var oclass = [types objectForKey:objectName];
+    
+    if ( [oclass readOnly] )
+    {
+        console.log( "HKDataStore::newDataObjectForName->Error: 'Can't create new instances of a read-only data object class'");
+        return;
+    }
+    
     var retval = nil;
     var enumerator = nil;
     var attribute = nil;
@@ -360,6 +367,17 @@ var gHKDataStore = nil;
 }
 
 //
+//  Internal
+//
+
+- (void)queueOperation:(HKDataStoreOperation)operation
+{
+    [operations addObject:operation];
+
+    [self performNextOperation];
+}
+
+//
 //  Private
 //
 
@@ -396,6 +414,10 @@ var gHKDataStore = nil;
         case HKDataStoreOperationDELETE:
             [queue performRequest:[self URLRequestForDELETEOperationForDataObject:[current object]]];
             break;
+            
+        case HKDataStoreOperationFUNCTION:
+             [queue performRequest:[self URLRequestForFUNCTIONOperationForDataObject:[current object] parameters:[current parameters]]];
+             break;
     }
 }
 
@@ -552,6 +574,20 @@ var gHKDataStore = nil;
     return request;
 }
 
+- (HKURLRequest)URLRequestForFUNCTIONOperationForDataObject:(HKDataObject)object parameters:(CPArray)parameters
+{
+    var base = [self baseURL];
+    var url = base + [object instanceURL] + "/" + [parameters componentsJoinedByString:@"/"];
+    var request = nil;
+
+    request = [HKURLRequest requestWithURL:url target:self selector:@selector(FUNCTIONOperationDidComplete:) context:object];
+    [request setHTTPMethod:@"GET"];
+
+    [self addAdditionalHTTPHeadersToRequest:request];
+
+    return request;
+}
+
 - (void)addAdditionalHTTPHeadersToRequest:(HKURLRequest)request
 {
     if ( [self additionalHTTPHeaders] )
@@ -575,6 +611,11 @@ var gHKDataStore = nil;
 
 - (void)observeValueForKeyPath:(CPString)keyPath ofObject:(id)object change:(CPDictionary)change context:(id)context
 {
+    if ( [[object class] readOnly] )
+    {
+        return;
+    }
+    
     console.log( "HKDataStore::CHANGE->Object (" + object + ") SET '" + keyPath + "' TO '" + object[keyPath] + "'");
     
     if ( [self hasQueuedOperationOfType:HKDataStoreOperationPUT object:object] )
@@ -716,6 +757,29 @@ var gHKDataStore = nil;
             [self updateControllersForDataObjectName:key];
 
             [self callObserversWithObjectName:key operation:HKDataStoreOperationDELETE];
+        }
+    }
+
+    idle = true; [self performNextOperation];
+}
+
+- (void)FUNCTIONOperationDidComplete:(HKURLResult)result
+{
+    if ( [result success] )
+    {
+        var context = [result context];
+        var object = [result object];
+        var keys = [types allKeysForObject:[context class]]
+
+        [context setupFromJSON:object];
+
+        if ( [keys count] > 0 )
+        {
+            var key = [keys objectAtIndex:0];
+
+            [self updateControllersForDataObjectName:key];
+
+            [self callObserversWithObjectName:key operation:HKDataStoreOperationFUNCTION];
         }
     }
 

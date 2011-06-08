@@ -32,6 +32,7 @@ HKDataStoreOperationGET = 0;
 HKDataStoreOperationPOST = 1;
 HKDataStoreOperationPUT = 2;
 HKDataStoreOperationDELETE = 3;
+HKDataStoreOperationFUNCTION = 4;
 
 //
 //	Class implementation
@@ -40,6 +41,7 @@ HKDataStoreOperationDELETE = 3;
 {
 	var type @accessors;
 	var object @accessors;
+	var parameters @accessors;
 }
 
 + (HKDataStoreOperation)operationWithType:(int)aType object:(id)anObject
@@ -47,12 +49,23 @@ HKDataStoreOperationDELETE = 3;
 	return [[HKDataStoreOperation alloc] initWithType:aType object:anObject];
 }
 
++ (HKDataStoreOperation)operationWithType:(int)aType object:(id)anObject parameters:(CPArray)someParameters
+{
+	return [[HKDataStoreOperation alloc] initWithType:aType object:anObject parameters:someParameters];
+}
+
 - (id)initWithType:(int)aType object:(id)anObject
+{
+	return [self initWithType:aType object:anObject parameters:nil];
+}
+
+- (id)initWithType:(int)aType object:(id)anObject parameters:(CPArray)someParameters
 {
 	if ( self = [super init] )
 	{
 		type = aType;
 		object = anObject;
+		parameters = someParameters;
 	}
 	
 	return self;
