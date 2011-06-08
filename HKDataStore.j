@@ -253,6 +253,15 @@ var gHKDataStore = nil;
     }
 }
 
+- (void)resetForDataObjectName:(CPString)objectName
+{
+    var objs = [objects objectForKey:objectName];
+    
+    [objs removeAllObjects];
+    
+    [self refreshForDataObjectName:objectName];
+}
+
 - (HKDataObject)newDataObjectForName:(CPString)objectName
 {
     [self newDataObjectForName:objectName initialValues:nil];
