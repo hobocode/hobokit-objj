@@ -567,6 +567,7 @@ var gHKDataStore = nil;
         {
             var key = [keys objectAtIndex:0];
             var set = [objects objectForKey:key];
+            var newobjects = [CPSet set];
             var enumerator = nil;
             var aenumerator = nil;
             var json = nil;
@@ -592,7 +593,7 @@ var gHKDataStore = nil;
                 instance = [[context alloc] init];
 
                 [instance setupFromJSON:json];
-                [set addObject:instance];
+                [newobjects addObject:instance];
 
                 aenumerator = [[context attributesToObserve] objectEnumerator];
 
@@ -600,6 +601,15 @@ var gHKDataStore = nil;
                 {
                     [instance addObserver:self forKeyPath:attribute options:0 context:nil];
                 }
+            }
+            
+            if ( [set count] > 0 )
+            {
+                [set intersectSet:newobjects];
+            }
+            else
+            {
+                [set unionSet:newobjects];
             }
 
             [self updateControllersForDataObjectName:key];
