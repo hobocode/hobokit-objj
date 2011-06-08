@@ -129,6 +129,31 @@ var gHKDataStore = nil;
     }
 }
 
+
+- (void)callObserversWithObjectName:(CPString)objectName operation:(int)operation
+{
+
+    // call observers
+    if ( [observers objectForKey:objectName] != nil)
+    {
+        var observer,
+            enumerator;
+
+        var inv = [CPInvocation invocationWithMethodSignature:nil];
+        [inv setArgument:self atIndex:2];
+        [inv setArgument:objectName atIndex:3];
+        [inv setArgument:operation atIndex:4];
+
+        enumerator = [[observers objectForKey:objectName] objectEnumerator];
+        while ( (observer = [enumerator nextObject]) != nil )
+        {
+            [inv setSelector:observer[1]];
+            [inv invokeWithTarget:observer[0]];
+        }
+    }
+}
+
+
 - (void)addObserver:(id)observer selector:(SEL)sel forDataObjectName:(CPString)objectName
 {
     [self addObserver:observer selector:sel forDataObjectNames:[objectName]];
@@ -157,13 +182,13 @@ var gHKDataStore = nil;
                 console.log( "HKDataStore::registerDataObjectClass->Object dependencies (" + objectName + ") are all loaded, load immediately!" );
 
                 [loaded addObject:objectName];
-                [operations addObject:[HKDataStoreOperation operationWithType:kHKDataStoreOperationGET object:objectClass]];
+                [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:objectClass]];
             }
         }
         else
         {
             [loaded addObject:objectName];
-            [operations addObject:[HKDataStoreOperation operationWithType:kHKDataStoreOperationGET object:objectClass]];
+            [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:objectClass]];
         }
 
         var keys = [dependencies allKeys];
@@ -180,7 +205,7 @@ var gHKDataStore = nil;
                 console.log( "HKDataStore::registerDataObjectClass->Loading objects (" + key + ") cause all dependencies are now loaded" );
 
                 [loaded addObject:key];
-                [operations addObject:[HKDataStoreOperation operationWithType:kHKDataStoreOperationGET object:[types objectForKey:key]]];
+                [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:[types objectForKey:key]]];
 
                 enumerator = [keys objectEnumerator];
             }
@@ -223,7 +248,7 @@ var gHKDataStore = nil;
 
     if ( oclass != nil )
     {
-        [operations addObject:[HKDataStoreOperation operationWithType:kHKDataStoreOperationGET object:oclass]];
+        [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:oclass]];
 
         [self performNextOperation];
     }
@@ -277,7 +302,7 @@ var gHKDataStore = nil;
         console.log( "HKDataStore::ADD->Object (" + retval + ")");
         console.log( "HKDataStore::AFTER_ADD->Objects (" + objectName + "): " + set);
 
-        [operations addObject:[HKDataStoreOperation operationWithType:kHKDataStoreOperationPOST object:retval]];
+        [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPOST object:retval]];
 
         [self performNextOperation];
     }
@@ -299,7 +324,7 @@ var gHKDataStore = nil;
         console.log( "HKDataStore::DELETE->Object (" + object + ")");
         console.log( "HKDataStore::AFTER_DELETE->Objects (" + key + "): " + set);
 
-        [operations addObject:[HKDataStoreOperation operationWithType:kHKDataStoreOperationDELETE object:object]];
+        [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationDELETE object:object]];
 
         [self performNextOperation];
     }
@@ -357,19 +382,19 @@ var gHKDataStore = nil;
 
     switch ( [current type] )
     {
-        case kHKDataStoreOperationGET:
+        case HKDataStoreOperationGET:
             [queue performRequest:[self URLRequestForGETOperationForDataObjectClass:[current object]]];
             break;
 
-        case kHKDataStoreOperationPOST:
+        case HKDataStoreOperationPOST:
             [queue performRequest:[self URLRequestForPOSTOperationForDataObject:[current object]]];
             break;
 
-        case kHKDataStoreOperationPUT:
+        case HKDataStoreOperationPUT:
             [queue performRequest:[self URLRequestForPUTOperationForDataObject:[current object]]];
             break;
 
-        case kHKDataStoreOperationDELETE:
+        case HKDataStoreOperationDELETE:
             [queue performRequest:[self URLRequestForDELETEOperationForDataObject:[current object]]];
             break;
     }
@@ -553,15 +578,16 @@ var gHKDataStore = nil;
 {
     console.log( "HKDataStore::CHANGE->Object (" + object + ") SET '" + keyPath + "' TO '" + object[keyPath] + "'");
     
-    if ( [self hasQueuedOperationOfType:kHKDataStoreOperationPUT object:object] )
+    if ( [self hasQueuedOperationOfType:HKDataStoreOperationPUT object:object] )
         return;
         
-    if ( [self hasQueuedOperationOfType:kHKDataStoreOperationPOST object:object] )
+    if ( [self hasQueuedOperationOfType:HKDataStoreOperationPOST object:object] )
         return;
     
-    [operations addObject:[HKDataStoreOperation operationWithType:kHKDataStoreOperationPUT object:object]];
+    [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPUT object:object]];
     [self performNextOperation];
 }
+
 
 //
 //  Request Callbacks
@@ -627,16 +653,7 @@ var gHKDataStore = nil;
 
             console.log( "HKDataStore::AFTER_GET->Objects AFTER INSERT (" + key + "): " + set);
 
-            // call observers
-            if ( [observers objectForKey:key] != nil)
-            {
-                var observer;
-                enumerator = [[observers objectForKey:key] objectEnumerator];
-                while ( (observer = [enumerator nextObject]) != nil )
-                {
-                    [observer[0] performSelector:observer[1] withObject:self withObject:key];
-                }
-            }
+            [self callObserversWithObjectName:key operation:HKDataStoreOperationGET];
         }
     }
 

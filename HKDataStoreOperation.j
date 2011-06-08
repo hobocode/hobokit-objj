@@ -28,10 +28,10 @@
 //	Constants
 //
 
-kHKDataStoreOperationGET = 0;
-kHKDataStoreOperationPOST = 1;
-kHKDataStoreOperationPUT = 2;
-kHKDataStoreOperationDELETE = 3;
+HKDataStoreOperationGET = 0;
+HKDataStoreOperationPOST = 1;
+HKDataStoreOperationPUT = 2;
+HKDataStoreOperationDELETE = 3;
 
 //
 //	Class implementation
