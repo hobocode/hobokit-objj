@@ -448,7 +448,7 @@ var gHKDataStore = nil;
 
     while ( (attribute = [enumerator nextObject]) != nil )
     {
-        value = object[attribute];
+        value = [object valueForKey:attribute];
 
         if ( value != nil )
         {
@@ -457,7 +457,7 @@ var gHKDataStore = nil;
                 parameters = [[CPDictionary alloc] init];
             }
 
-            [parameters setObject:value forKey:attribute];
+            [parameters setObject:value forKey:[attribute underscoreString]];
         }
     }
 
@@ -615,6 +615,8 @@ var gHKDataStore = nil;
 
             [self updateControllersForDataObjectName:key];
 
+            console.log( "HKDataStore::AFTER_GET->Objects AFTER INSERT (" + key + "): " + set);
+
             // call observers
             if ( [observers objectForKey:key] != nil)
             {
@@ -625,8 +627,6 @@ var gHKDataStore = nil;
                     [observer[0] performSelector:observer[1] withObject:self withObject:key];
                 }
             }
-
-            console.log( "HKDataStore::AFTER_GET->Objects AFTER INSERT (" + key + "): " + set);
         }
     }
 
