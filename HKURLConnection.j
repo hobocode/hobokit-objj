@@ -45,11 +45,15 @@
 {
     if ( (_statusCode < 200 || _statusCode >= 300) )
     {
-        if (errorHandler) errorHandler(data);
+        if (errorHandler) {
+            if ( errorHandler.length == 2 ) errorHandler( _statusCode, data )
+            else errorHandler( data );
+        }
     }
     else if ( receiveDataHandler )
     {
-        receiveDataHandler(data);
+        if ( receiveDataHandler.length == 2 ) receiveDataHandler( _statusCode, data )
+        else receiveDataHandler( data );
     }
 /*    
     console.log("- (void)connection:(CPURLConnection)connection didReceiveData:(CPString)data");
