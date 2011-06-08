@@ -132,23 +132,22 @@ var gHKDataStore = nil;
 
 - (void)callObserversWithObjectName:(CPString)objectName operation:(int)operation
 {
-
-    // call observers
     if ( [observers objectForKey:objectName] != nil)
     {
         var observer,
-            enumerator;
+            enumerator,
+            invocation;
 
-        var inv = [CPInvocation invocationWithMethodSignature:nil];
-        [inv setArgument:self atIndex:2];
-        [inv setArgument:objectName atIndex:3];
-        [inv setArgument:operation atIndex:4];
+        invocation = [CPInvocation invocationWithMethodSignature:nil];
+        [invocation setArgument:self atIndex:2];
+        [invocation setArgument:objectName atIndex:3];
+        [invocation setArgument:operation atIndex:4];
 
         enumerator = [[observers objectForKey:objectName] objectEnumerator];
         while ( (observer = [enumerator nextObject]) != nil )
         {
-            [inv setSelector:observer[1]];
-            [inv invokeWithTarget:observer[0]];
+            [invocation setSelector:observer[1]];
+            [invocation invokeWithTarget:observer[0]];
         }
     }
 }
