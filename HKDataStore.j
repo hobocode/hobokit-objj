@@ -675,6 +675,8 @@ var gHKDataStore = nil;
             var key = [keys objectAtIndex:0];
 
             [self updateControllersForDataObjectName:key];
+
+            [self callObserversWithObjectName:key operation:HKDataStoreOperationPOST];
         }
     }
 
@@ -693,6 +695,8 @@ var gHKDataStore = nil;
             var key = [keys objectAtIndex:0];
 
             [self updateControllersForDataObjectName:key];
+
+            [self callObserversWithObjectName:key operation:HKDataStoreOperationPUT];
         }
     }
 
@@ -711,6 +715,8 @@ var gHKDataStore = nil;
             var key = [keys objectAtIndex:0];
 
             [self updateControllersForDataObjectName:key];
+
+            [self callObserversWithObjectName:key operation:HKDataStoreOperationDELETE];
         }
     }
 
