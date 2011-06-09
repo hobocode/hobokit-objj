@@ -69,19 +69,13 @@
 	return nil;
 }
 
-- (CPArray)parametersForFunctionName:(CPString)functionName
-{
-    return nil;
-}
-
-- (void)callFunctionWithName:(CPString)functionName
+- (void)callFunctionWithName:(CPString)functionName parameters:(CPArray)parameters
 {
     var all = [CPArray arrayWithObject:functionName];
-    var params = [self parametersForFunctionName:functionName];
     
-    if ( params != nil )
+    if ( parameters != nil )
     {
-        [all addObjectsFromArray:params];
+        [all addObjectsFromArray:parameters];
     }
     
     [[HKDataStore sharedDataStore] queueOperation:[HKDataStoreOperation operationWithType:HKDataStoreOperationFUNCTION object:self parameters:all]];
