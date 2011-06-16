@@ -367,6 +367,11 @@ var gHKDataStore = nil;
     return ret;
 }
 
+- (CPSet)dataObjectsForName:(CPString)objectName
+{
+    return [objects objectForKey:objectName];
+}
+
 - (CPSet)dataObjectsForName:(CPString)objectName matchingPredicate:(CPPredicate)objectPredicate
 {
     var set = [objects objectForKey:objectName];
