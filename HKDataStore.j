@@ -172,13 +172,13 @@ var gHKDataStore = nil;
 
         if ( objectDependencies != nil )
         {
-            console.log( "HKDataStore::registerDataObjectClass->Objects (" + objectName + ") are dependent on: " + objectDependencies );
+            CPLog.debug( "HKDataStore::registerDataObjectClass->Objects (" + objectName + ") are dependent on: " + objectDependencies );
 
             [dependencies setObject:objectDependencies forKey:objectName];
 
             if ( ![loaded containsObject:objectName] && [objectDependencies isSubsetOfSet:loaded] )
             {
-                console.log( "HKDataStore::registerDataObjectClass->Object dependencies (" + objectName + ") are all loaded, load immediately!" );
+                CPLog.debug( "HKDataStore::registerDataObjectClass->Object dependencies (" + objectName + ") are all loaded, load immediately!" );
 
                 [loaded addObject:objectName];
                 [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:objectClass]];
@@ -201,7 +201,7 @@ var gHKDataStore = nil;
 
             if ( ![loaded containsObject:key] && [dependent isSubsetOfSet:loaded] )
             {
-                console.log( "HKDataStore::registerDataObjectClass->Loading objects (" + key + ") cause all dependencies are now loaded" );
+                CPLog.debug( "HKDataStore::registerDataObjectClass->Loading objects (" + key + ") cause all dependencies are now loaded" );
 
                 [loaded addObject:key];
                 [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:[types objectForKey:key]]];
@@ -273,7 +273,7 @@ var gHKDataStore = nil;
     
     if ( [oclass readOnly] )
     {
-        console.log( "HKDataStore::newDataObjectForName->Error: 'Can't create new instances of a read-only data object class'");
+        CPLog.debug( "HKDataStore::newDataObjectForName->Error: 'Can't create new instances of a read-only data object class'");
         return;
     }
     
@@ -314,8 +314,8 @@ var gHKDataStore = nil;
 
         set = [objects objectForKey:objectName]; [set addObject:retval];
 
-        console.log( "HKDataStore::ADD->Object (" + retval + ")");
-        console.log( "HKDataStore::AFTER_ADD->Objects (" + objectName + "): " + set);
+        CPLog.debug( "HKDataStore::ADD->Object (" + retval + ")");
+        CPLog.debug( "HKDataStore::AFTER_ADD->Objects (" + objectName + "): " + set);
 
         [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPOST object:retval]];
 
@@ -336,8 +336,8 @@ var gHKDataStore = nil;
 
         [set removeObject:object];
 
-        console.log( "HKDataStore::DELETE->Object (" + object + ")");
-        console.log( "HKDataStore::AFTER_DELETE->Objects (" + key + "): " + set);
+        CPLog.debug( "HKDataStore::DELETE->Object (" + object + ")");
+        CPLog.debug( "HKDataStore::AFTER_DELETE->Objects (" + key + "): " + set);
 
         [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationDELETE object:object]];
 
@@ -397,7 +397,7 @@ var gHKDataStore = nil;
 
 - (void)performNextOperation
 {
-    console.log( "HKDataStore::performNextOperation (idle='" + idle + "', operations='" + [operations count] + "')");
+    CPLog.debug( "HKDataStore::performNextOperation (idle='" + idle + "', operations='" + [operations count] + "')");
     
     current = nil;
     
@@ -465,7 +465,7 @@ var gHKDataStore = nil;
 
             while ( (controller = [enumerator nextObject]) != nil )
             {
-                console.log("HKDataStore-> changing content to: " + controller );
+                CPLog.debug("HKDataStore-> changing content to: " + controller );
 
                 var predicate = [controller filterPredicate];
                 [controller setContent:[objs allObjects]];
@@ -630,7 +630,7 @@ var gHKDataStore = nil;
         return;
     }
     
-    console.log( "HKDataStore::CHANGE->Object (" + object + ") SET '" + keyPath + "' TO '" + object[keyPath] + "'");
+    CPLog.debug( "HKDataStore::CHANGE->Object (" + object + ") SET '" + keyPath + "' TO '" + object[keyPath] + "'");
     
     if ( [self hasQueuedOperationOfType:HKDataStoreOperationPUT object:object] )
         return;
@@ -675,7 +675,7 @@ var gHKDataStore = nil;
                 enumerator = [[result object] objectEnumerator];
             }
 
-            console.log( "HKDataStore::AFTER_GET->Objects BEFORE INSERT (" + key + "): " + set);
+            CPLog.debug( "HKDataStore::AFTER_GET->Objects BEFORE INSERT (" + key + "): " + set);
 
             [set rehash];
 
@@ -705,7 +705,7 @@ var gHKDataStore = nil;
 
             [self updateControllersForDataObjectName:key];
 
-            console.log( "HKDataStore::AFTER_GET->Objects AFTER INSERT (" + key + "): " + set);
+            CPLog.debug( "HKDataStore::AFTER_GET->Objects AFTER INSERT (" + key + "): " + set);
 
             [self callObserversWithObjectName:key operation:HKDataStoreOperationGET];
         }

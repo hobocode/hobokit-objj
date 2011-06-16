@@ -58,7 +58,7 @@
 
 - (void)handleNextRequest
 {
-	console.log( "HKURLRequestQueue::handleNextRequest (idle='" + idle + "', requests='" + [requests count] + "')" );
+	CPLog.debug( "HKURLRequestQueue::handleNextRequest (idle='" + idle + "', requests='" + [requests count] + "')" );
 	
 	if ( [requests count] == 0 )
 		return;
@@ -70,7 +70,7 @@
 	
 	currentRequest = [requests objectAtIndex:0]; [requests removeObjectAtIndex:0];
 	
-	console.log( "HKURLRequestQueue::handleNextRequest->Sending request (" + [currentRequest HTTPMethod] + "): " + [currentRequest URL] );
+	CPLog.debug( "HKURLRequestQueue::handleNextRequest->Sending request (" + [currentRequest HTTPMethod] + "): " + [currentRequest URL] );
 	
 	currentConnection = [CPURLConnection connectionWithRequest:currentRequest delegate:self];
 }
@@ -79,7 +79,7 @@
 {
 	var result = nil;
 	
-	console.log( "HKURLRequestQueue::handleRequestResult->Result ( status='" + currentStatus + "' )" );
+	CPLog.debug( "HKURLRequestQueue::handleRequestResult->Result ( status='" + currentStatus + "' )" );
 	
 	if ( (currentStatus < 200 || currentStatus >= 300) )
 	{
@@ -127,7 +127,7 @@
 
 - (void)connection:(CPURLConnection)connection didReceiveData:(CPString)data
 {
-//	console.log( "HKURLRequestQueue::connection:" + connection + ", didReceiveData:" + data );
+//	CPLog.debug( "HKURLRequestQueue::connection:" + connection + ", didReceiveData:" + data );
 	
 	currentData = data;
 	
@@ -136,7 +136,7 @@
 
 - (void)connection:(CPURLConnection)connection didFailWithError:(CPString)error
 {
-	console.log( "HKURLRequestQueue::connection:" + connection + ", didFailWithError:" + error );
+	CPLog.debug( "HKURLRequestQueue::connection:" + connection + ", didFailWithError:" + error );
 	
 	currentError = error;
 	
@@ -145,7 +145,7 @@
 
 -(void)connection:(CPURLConnection)connection didReceiveResponse:(CPURLResponse)response
 {
-	console.log( "HKURLRequestQueue::connection:" + connection + ", didReceiveResponse:" + response );
+	CPLog.debug( "HKURLRequestQueue::connection:" + connection + ", didReceiveResponse:" + response );
 	
     if ( [response isKindOfClass:[CPHTTPURLResponse class]] )
 	{
