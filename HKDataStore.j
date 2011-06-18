@@ -129,6 +129,35 @@ var gHKDataStore = nil;
     }
 }
 
+- (void)removeObserver:(id)observer
+{
+    var objectName;
+    for ( objectName in observers )
+    {
+        [self removeObserver:observer forObjectName:objectName];
+    }
+}
+
+- (void)removeObserver:(id)observer forObjectName:(CPString)objectName
+{
+    var observerArray = [observers objectForKey:objectName];
+
+    if ( observerArray == nil ) return;
+
+    for ( var i = 0; i < observerArray.length; i++ )
+    {
+        var o = observerArray[i];
+        if ( o[0] == observer )
+        {
+            [observerArray removeObject:o];
+        }
+    }
+}
+
+- (void)removeAllObservers
+{
+    [observers removeAllObjects];
+}
 
 - (void)callObserversWithObjectName:(CPString)objectName operation:(int)operation
 {
