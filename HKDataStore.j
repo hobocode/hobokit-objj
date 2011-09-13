@@ -293,7 +293,7 @@ var gHKDataStore = nil;
 
 - (HKDataObject)newDataObjectForName:(CPString)objectName
 {
-    [self newDataObjectForName:objectName initialValues:nil];
+    return [self newDataObjectForName:objectName initialValues:nil];
 }
 
 - (HKDataObject)newDataObjectForName:(CPString)objectName initialValues:(CPDictionary)values
@@ -305,7 +305,7 @@ var gHKDataStore = nil;
         CPLog.debug( "HKDataStore::newDataObjectForName->Error: 'Can't create new instances of a read-only data object class'");
         return;
     }
-    
+
     var retval = nil;
     var enumerator = nil;
     var attribute = nil;
@@ -315,7 +315,7 @@ var gHKDataStore = nil;
     if ( oclass != nil )
     {
         retval = [[oclass alloc] init];
-
+                        
         if ( values != nil )
         {
             var key = nil,
@@ -343,14 +343,17 @@ var gHKDataStore = nil;
 
         set = [objects objectForKey:objectName]; [set addObject:retval];
 
-        CPLog.debug( "HKDataStore::ADD->Object (" + retval + ")");
+        CPLog.debug( "HKDataStore::ADD->Object (" + [retval description] + ")");
         CPLog.debug( "HKDataStore::AFTER_ADD->Objects (" + objectName + "): " + set);
 
-        [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPOST object:retval]];
+        if ( [retval sync] )
+        {
+            [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPOST object:retval]];
 
-        [self performNextOperation];
+            [self performNextOperation];
+        }
     }
-
+    
     return retval;
 }
 
@@ -537,6 +540,9 @@ var gHKDataStore = nil;
 
     while ( (attribute = [enumerator nextObject]) != nil )
     {
+        if ( attribute == @"sync" )
+            continue;
+    
         value = [object valueForKey:attribute];
 
         if ( value != nil )
@@ -576,6 +582,9 @@ var gHKDataStore = nil;
 
     while ( (attribute = [enumerator nextObject]) != nil )
     {
+        if ( attribute == @"sync" )
+            continue;
+            
         value = object[attribute];
 
         if ( value != nil )
@@ -659,6 +668,12 @@ var gHKDataStore = nil;
         return;
     }
     
+    if ( ![object sync] )
+    {
+        CPLog.debug( "HKDataStore::CHANGE->Object (" + object + ") sync flag off");
+        return;
+    }
+    
     CPLog.debug( "HKDataStore::CHANGE->Object (" + object + ") SET '" + keyPath + "' TO '" + object[keyPath] + "'");
     
     if ( [self hasQueuedOperationOfType:HKDataStoreOperationPUT object:object] )
@@ -667,7 +682,15 @@ var gHKDataStore = nil;
     if ( [self hasQueuedOperationOfType:HKDataStoreOperationPOST object:object] )
         return;
     
-    [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPUT object:object]];
+    if ( [object oid] == -1 )
+    {
+        [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPOST object:object]];
+    }
+    else
+    {
+        [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPUT object:object]];
+    }
+    
     [self performNextOperation];
 }
 

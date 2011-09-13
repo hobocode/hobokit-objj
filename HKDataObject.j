@@ -29,11 +29,12 @@
 @implementation HKDataObject : CPObject
 {
 	int oid @accessors;
+	BOOL sync @accessors;
 }
 
 + (CPSet)attributesToObserve
 {
-	return nil;
+	return [CPSet setWithObject:@"sync"];
 }
 
 + (CPString)baseURL
@@ -54,6 +55,7 @@
 	if ( self = [super init] )
 	{
 		oid = -1;
+		sync = YES;
 	}
 	
 	return self;
