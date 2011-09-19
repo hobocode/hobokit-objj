@@ -37,6 +37,11 @@
 	return [CPSet setWithObject:@"sync"];
 }
 
++ (CPSet)attributesReadOnly
+{
+    return [CPSet set];
+}
+
 + (CPString)baseURL
 {
 	return nil;

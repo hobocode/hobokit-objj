@@ -537,12 +537,13 @@ var gHKDataStore = nil;
     var attribute = nil;
     var value = nil;
     var enumerator = [[[object class] attributesToObserve] objectEnumerator];
+    var readonly = [[object class] attributesReadOnly];
 
     while ( (attribute = [enumerator nextObject]) != nil )
     {
-        if ( attribute == @"sync" )
+        if ( attribute == @"sync" || [readonly containsObject:attribute] )
             continue;
-    
+
         value = [object valueForKey:attribute];
 
         if ( value != nil )
@@ -579,10 +580,11 @@ var gHKDataStore = nil;
     var attribute = nil;
     var value = nil;
     var enumerator = [[[object class] attributesToObserve] objectEnumerator];
+    var readonly = [[object class] attributesReadOnly];
 
     while ( (attribute = [enumerator nextObject]) != nil )
     {
-        if ( attribute == @"sync" )
+        if ( attribute == @"sync" || [readonly containsObject:attribute]  )
             continue;
             
         value = object[attribute];
@@ -739,7 +741,7 @@ var gHKDataStore = nil;
                 [newobjects addObject:instance];
 
                 aenumerator = [[context attributesToObserve] objectEnumerator];
-
+                
                 while ( (attribute = [aenumerator nextObject]) != nil )
                 {
                     [instance addObserver:self forKeyPath:attribute options:0 context:nil];
