@@ -365,7 +365,7 @@ var gHKDataStore = nil;
     {
         var key = [keys objectAtIndex:0];
         var set = [objects objectForKey:key];
-
+        
         [set removeObject:object];
 
         CPLog.debug( "HKDataStore::DELETE->Object (" + object + ")");
@@ -781,7 +781,10 @@ var gHKDataStore = nil;
         if ( [keys count] > 0 )
         {
             var key = [keys objectAtIndex:0];
-
+            var set = [objects objectForKey:key];
+            
+            [set rehash];
+            
             [self updateControllersForDataObjectName:key];
 
             [self callObserversWithObjectName:key operation:HKDataStoreOperationPOST];
