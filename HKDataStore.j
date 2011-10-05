@@ -586,8 +586,8 @@ var gHKDataStore = nil;
     {
         if ( attribute == @"sync" || [readonly containsObject:attribute]  )
             continue;
-            
-        value = object[attribute];
+
+        value = [object valueForKey:attribute];
 
         if ( value != nil )
         {
