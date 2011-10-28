@@ -33,6 +33,7 @@ HKDataStoreOperationPOST = 1;
 HKDataStoreOperationPUT = 2;
 HKDataStoreOperationDELETE = 3;
 HKDataStoreOperationFUNCTION = 4;
+HKDataStoreOperationFUNCTIONPOST = 5;
 
 //
 //	Class implementation
@@ -42,6 +43,7 @@ HKDataStoreOperationFUNCTION = 4;
 	var type @accessors;
 	var object @accessors;
 	var parameters @accessors;
+	var functionName @accessors;
 }
 
 + (HKDataStoreOperation)operationWithType:(int)aType object:(id)anObject
@@ -49,23 +51,24 @@ HKDataStoreOperationFUNCTION = 4;
 	return [[HKDataStoreOperation alloc] initWithType:aType object:anObject];
 }
 
-+ (HKDataStoreOperation)operationWithType:(int)aType object:(id)anObject parameters:(CPArray)someParameters
++ (HKDataStoreOperation)operationWithType:(int)aType object:(id)anObject functionName:(CPString)aFunctionName parameters:(id)someParameters
 {
-	return [[HKDataStoreOperation alloc] initWithType:aType object:anObject parameters:someParameters];
+	return [[HKDataStoreOperation alloc] initWithType:aType object:anObject functionName:aFunctionName parameters:someParameters];
 }
 
 - (id)initWithType:(int)aType object:(id)anObject
 {
-	return [self initWithType:aType object:anObject parameters:nil];
+	return [self initWithType:aType object:anObject functionName:nil parameters:nil];
 }
 
-- (id)initWithType:(int)aType object:(id)anObject parameters:(CPArray)someParameters
+- (id)initWithType:(int)aType object:(id)anObject functionName:(CPString)aFunctionName parameters:(id)someParameters
 {
 	if ( self = [super init] )
 	{
 		type = aType;
 		object = anObject;
 		parameters = someParameters;
+		functionName = aFunctionName;
 	}
 	
 	return self;

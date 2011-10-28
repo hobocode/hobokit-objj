@@ -78,14 +78,12 @@
 
 - (void)callFunctionWithName:(CPString)functionName parameters:(CPArray)parameters
 {
-    var all = [CPArray arrayWithObject:functionName];
-    
-    if ( parameters != nil )
-    {
-        [all addObjectsFromArray:parameters];
-    }
-    
-    [[HKDataStore sharedDataStore] queueOperation:[HKDataStoreOperation operationWithType:HKDataStoreOperationFUNCTION object:self parameters:all]];
+    [[HKDataStore sharedDataStore] queueOperation:[HKDataStoreOperation operationWithType:HKDataStoreOperationFUNCTION object:self functionName:functionName parameters:parameters]];
+}
+
+- (void)callPOSTFunctionWithName:(CPString)functionName parameters:(CPDictionary)parameters
+{    
+    [[HKDataStore sharedDataStore] queueOperation:[HKDataStoreOperation operationWithType:HKDataStoreOperationFUNCTIONPOST object:self functionName:functionName parameters:parameters]];
 }
 
 - (unsigned)hash

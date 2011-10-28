@@ -22,6 +22,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+HK_ACTION_COMPLETE_NOTIFICATION = "HKActionCompleteNotification";
 
 @implementation _CPConcreteMutableSet (HKSetRehash)
 
@@ -460,10 +461,15 @@ var gHKDataStore = nil;
         case HKDataStoreOperationDELETE:
             [queue performRequest:[self URLRequestForDELETEOperationForDataObject:[current object]]];
             break;
-            
+
         case HKDataStoreOperationFUNCTION:
-             [queue performRequest:[self URLRequestForFUNCTIONOperationForDataObject:[current object] parameters:[current parameters]]];
+             [queue performRequest:[self URLRequestForFUNCTIONOperationForDataObject:[current object] functionName:[current functionName] parameters:[current parameters]]];
              break;
+
+         case HKDataStoreOperationFUNCTIONPOST:
+             [queue performRequest:[self URLRequestForFUNCTIONPOSTOperationForDataObject:[current object] functionName:[current functionName] parameters:[current parameters]]];
+             break;
+
     }
 }
 
@@ -628,14 +634,30 @@ var gHKDataStore = nil;
     return request;
 }
 
-- (HKURLRequest)URLRequestForFUNCTIONOperationForDataObject:(HKDataObject)object parameters:(CPArray)parameters
+- (HKURLRequest)URLRequestForFUNCTIONOperationForDataObject:(HKDataObject)object functionName:(CPString)functionName parameters:(CPArray)parameters
 {
     var base = [self baseURL];
-    var url = base + [object instanceURL] + "/" + [parameters componentsJoinedByString:@"/"];
+    var url = base + [object instanceURL] + "/" + functionName + "/" + ( parameters != nil ? [parameters componentsJoinedByString:@"/"] : @"" );
     var request = nil;
 
     request = [HKURLRequest requestWithURL:url target:self selector:@selector(FUNCTIONOperationDidComplete:) context:object];
     [request setHTTPMethod:@"GET"];
+
+    [self addAdditionalHTTPHeadersToRequest:request];
+
+    return request;
+}
+
+- (HKURLRequest)URLRequestForFUNCTIONPOSTOperationForDataObject:(HKDataObject)object functionName:(CPString)functionName parameters:(CPDictionary)parameters
+{
+    var base = [self baseURL];
+    var url = base + [object instanceURL] + "/" + functionName;
+    var request = nil;
+
+    request = [HKURLRequest requestWithURL:url target:self selector:@selector(FUNCTIONOperationDidComplete:) context:object];
+    [request setHTTPMethod:@"POST"];
+    
+    [request setParameters:parameters];
 
     [self addAdditionalHTTPHeadersToRequest:request];
 
@@ -764,6 +786,8 @@ var gHKDataStore = nil;
             [self callObserversWithObjectName:key operation:HKDataStoreOperationGET];
         }
     }
+    
+    [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
 
     idle = true; [self performNextOperation];
 }
@@ -790,7 +814,9 @@ var gHKDataStore = nil;
             [self callObserversWithObjectName:key operation:HKDataStoreOperationPOST];
         }
     }
-
+    
+    [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
+    
     idle = true; [self performNextOperation];
 }
 
@@ -810,7 +836,9 @@ var gHKDataStore = nil;
             [self callObserversWithObjectName:key operation:HKDataStoreOperationPUT];
         }
     }
-
+    
+    [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
+    
     idle = true; [self performNextOperation];
 }
 
@@ -830,7 +858,9 @@ var gHKDataStore = nil;
             [self callObserversWithObjectName:key operation:HKDataStoreOperationDELETE];
         }
     }
-
+    
+    [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
+    
     idle = true; [self performNextOperation];
 }
 
@@ -838,22 +868,28 @@ var gHKDataStore = nil;
 {
     if ( [result success] )
     {
-        var context = [result context];
         var object = [result object];
-        var keys = [types allKeysForObject:[context class]]
-
-        [context setupFromJSON:object];
-
-        if ( [keys count] > 0 )
+        
+        if ( object != nil )
         {
-            var key = [keys objectAtIndex:0];
+            var context = [result context];
+            var keys = [types allKeysForObject:[context class]]
 
-            [self updateControllersForDataObjectName:key];
+            [context setupFromJSON:object];
 
-            [self callObserversWithObjectName:key operation:HKDataStoreOperationFUNCTION];
+            if ( [keys count] > 0 )
+            {
+                var key = [keys objectAtIndex:0];
+
+                [self updateControllersForDataObjectName:key];
+
+                [self callObserversWithObjectName:key operation:HKDataStoreOperationFUNCTION];
+            }
         }
     }
-
+    
+    [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
+    
     idle = true; [self performNextOperation];
 }
 
