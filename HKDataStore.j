@@ -592,8 +592,8 @@ var gHKDataStore = nil;
     {
         if ( attribute == @"sync" || [readonly containsObject:attribute]  )
             continue;
-            
-        value = object[attribute];
+
+        value = [object valueForKey:attribute];
 
         if ( value != nil )
         {
@@ -769,15 +769,11 @@ var gHKDataStore = nil;
                     [instance addObserver:self forKeyPath:attribute options:0 context:nil];
                 }
             }
-            
-            if ( [set count] > 0 )
-            {
-                [set intersectSet:newobjects];
-            }
-            else
-            {
-                [set unionSet:newobjects];
-            }
+
+            [set unionSet:newobjects];
+            [set intersectSet:newobjects];
+
+            // set now contains all objects from the json fetch
 
             [self updateControllersForDataObjectName:key];
 
