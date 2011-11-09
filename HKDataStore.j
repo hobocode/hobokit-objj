@@ -506,10 +506,18 @@ var gHKDataStore = nil;
                 CPLog.debug("HKDataStore-> changing content to: " + controller );
 
                 var predicate = [controller filterPredicate];
+                var sortDescriptors = [controller sortDescriptors];
+                
                 [controller setContent:[objs allObjects]];
+                
                 if ( predicate )
                 {
                     [controller setFilterPredicate:predicate];
+                }
+                
+                if ( sortDescriptors )
+                {
+                    [controller setSortDescriptors:sortDescriptors];
                 }
             }
         }
