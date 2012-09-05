@@ -293,9 +293,9 @@ var gHKDataStore = nil;
 - (void)resetForDataObjectName:(CPString)objectName
 {
     var objs = [objects objectForKey:objectName];
-    
+
     [objs removeAllObjects];
-    
+
     [self refreshForDataObjectName:objectName];
 }
 
@@ -307,7 +307,7 @@ var gHKDataStore = nil;
 - (HKDataObject)newDataObjectForName:(CPString)objectName initialValues:(CPDictionary)values
 {
     var oclass = [types objectForKey:objectName];
-    
+
     if ( [oclass readOnly] )
     {
         return;
@@ -322,7 +322,7 @@ var gHKDataStore = nil;
     if ( oclass != nil )
     {
         retval = [[oclass alloc] init];
-                        
+
         if ( values != nil )
         {
             var key = nil,
@@ -357,7 +357,7 @@ var gHKDataStore = nil;
             [self performNextOperation];
         }
     }
-    
+
     return retval;
 }
 
@@ -369,7 +369,7 @@ var gHKDataStore = nil;
     {
         var key = [keys objectAtIndex:0];
         var set = [objects objectForKey:key];
-        
+
         [set removeObject:object];
 
         [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationDELETE object:object]];
@@ -429,9 +429,9 @@ var gHKDataStore = nil;
 //
 
 - (void)performNextOperation
-{    
+{
     current = nil;
-    
+
     if ( [operations count] == 0 )
         return;
 
@@ -479,13 +479,13 @@ var gHKDataStore = nil;
     var retval = NO;
     var enumerator = [operations objectEnumerator];
     var operation = nil;
-    
+
     while ( (operation = [enumerator nextObject]) != nil )
     {
         if ( [operation type] == type && [operation object] == object )
             return YES;
     }
-    
+
     return NO;
 }
 
@@ -506,14 +506,14 @@ var gHKDataStore = nil;
             {
                 var predicate = [controller filterPredicate];
                 var sortDescriptors = [controller sortDescriptors];
-                
+
                 [controller setContent:[objs allObjects]];
-                
+
                 if ( predicate )
                 {
                     [controller setFilterPredicate:predicate];
                 }
-                
+
                 if ( sortDescriptors )
                 {
                     [controller setSortDescriptors:sortDescriptors];
@@ -663,7 +663,7 @@ var gHKDataStore = nil;
 
     request = [HKURLRequest requestWithURL:url target:self selector:@selector(FUNCTIONOperationDidComplete:) context:object];
     [request setHTTPMethod:@"POST"];
-    
+
     [request setParameters:parameters];
 
     [self addAdditionalHTTPHeadersToRequest:request];
@@ -712,18 +712,18 @@ var gHKDataStore = nil;
     {
         return;
     }
-    
+
     if ( ![object sync] )
     {
         return;
     }
-        
+
     if ( [self hasQueuedOperationOfType:HKDataStoreOperationPUT object:object] )
         return;
-        
+
     if ( [self hasQueuedOperationOfType:HKDataStoreOperationPOST object:object] )
         return;
-    
+
     if ( [object oid] == -1 )
     {
         [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPOST object:object]];
@@ -732,7 +732,7 @@ var gHKDataStore = nil;
     {
         [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPUT object:object]];
     }
-    
+
     [self performNextOperation];
 }
 
@@ -779,7 +779,7 @@ var gHKDataStore = nil;
                 [newobjects addObject:instance];
 
                 aenumerator = [[context attributesToObserve] objectEnumerator];
-                
+
                 while ( (attribute = [aenumerator nextObject]) != nil )
                 {
                     [instance addObserver:self forKeyPath:attribute options:0 context:nil];
@@ -796,7 +796,7 @@ var gHKDataStore = nil;
             [self callObserversWithObjectName:key operation:HKDataStoreOperationGET];
         }
     }
-    
+
     [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
 
     idle = true; [self performNextOperation];
@@ -816,17 +816,17 @@ var gHKDataStore = nil;
         {
             var key = [keys objectAtIndex:0];
             var set = [objects objectForKey:key];
-            
+
             [set rehash];
-            
+
             [self updateControllersForDataObjectName:key];
 
             [self callObserversWithObjectName:key operation:HKDataStoreOperationPOST];
         }
     }
-    
+
     [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
-    
+
     idle = true; [self performNextOperation];
 }
 
@@ -846,9 +846,9 @@ var gHKDataStore = nil;
             [self callObserversWithObjectName:key operation:HKDataStoreOperationPUT];
         }
     }
-    
+
     [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
-    
+
     idle = true; [self performNextOperation];
 }
 
@@ -868,9 +868,9 @@ var gHKDataStore = nil;
             [self callObserversWithObjectName:key operation:HKDataStoreOperationDELETE];
         }
     }
-    
+
     [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
-    
+
     idle = true; [self performNextOperation];
 }
 
@@ -879,7 +879,7 @@ var gHKDataStore = nil;
     if ( [result success] )
     {
         var object = [result object];
-        
+
         if ( object != nil )
         {
             var context = [result context];
@@ -897,14 +897,14 @@ var gHKDataStore = nil;
             }
         }
     }
-    
+
     [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
-    
+
     idle = true; [self performNextOperation];
 }
 
 - (void)FUNCTIONGETOBJECTSOperationDidComplete:(HKURLResult)result
-{    
+{
     if ( [result success] )
     {
         var context = [result context];
@@ -941,7 +941,7 @@ var gHKDataStore = nil;
                 [newobjects addObject:instance];
 
                 aenumerator = [[context attributesToObserve] objectEnumerator];
-                
+
                 while ( (attribute = [aenumerator nextObject]) != nil )
                 {
                     [instance addObserver:self forKeyPath:attribute options:0 context:nil];
@@ -958,7 +958,7 @@ var gHKDataStore = nil;
             [self callObserversWithObjectName:key operation:HKDataStoreOperationGET];
         }
     }
-    
+
     [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
 
     idle = true; [self performNextOperation];
