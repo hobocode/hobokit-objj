@@ -190,10 +190,15 @@ var gHKDataStore = nil;
 
 - (void)registerDataObjectClass:(Class)objectClass forDataObjectName:(CPString)objectName
 {
-    [self registerDataObjectClass:objectClass forDataObjectName:objectName withDependencies:nil];
+    [self registerDataObjectClass:objectClass forDataObjectName:objectName withDependencies:nil fetch:YES];
 }
 
 - (void)registerDataObjectClass:(Class)objectClass forDataObjectName:(CPString)objectName withDependencies:(CPSet)objectDependencies
+{
+    [self registerDataObjectClass:objectClass forDataObjectName:objectName withDependencies:objectDependencies fetch:YES];
+}
+
+- (void)registerDataObjectClass:(Class)objectClass forDataObjectName:(CPString)objectName withDependencies:(CPSet)objectDependencies fetch:(BOOL)fetch
 {
     if ( [objectClass isSubclassOfClass:[HKDataObject class]] )
     {
@@ -202,22 +207,26 @@ var gHKDataStore = nil;
 
         if ( objectDependencies != nil )
         {
-            CPLog.debug( "HKDataStore::registerDataObjectClass->Objects (" + objectName + ") are dependent on: " + objectDependencies );
-
             [dependencies setObject:objectDependencies forKey:objectName];
 
             if ( ![loaded containsObject:objectName] && [objectDependencies isSubsetOfSet:loaded] )
             {
-                CPLog.debug( "HKDataStore::registerDataObjectClass->Object dependencies (" + objectName + ") are all loaded, load immediately!" );
-
                 [loaded addObject:objectName];
-                [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:objectClass]];
+
+                if ( fetch )
+                {
+                    [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:objectClass]];
+                }
             }
         }
         else
         {
             [loaded addObject:objectName];
-            [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:objectClass]];
+
+            if ( fetch )
+            {
+                [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:objectClass]];
+            }
         }
 
         var keys = [dependencies allKeys];
@@ -231,8 +240,6 @@ var gHKDataStore = nil;
 
             if ( ![loaded containsObject:key] && [dependent isSubsetOfSet:loaded] )
             {
-                CPLog.debug( "HKDataStore::registerDataObjectClass->Loading objects (" + key + ") cause all dependencies are now loaded" );
-
                 [loaded addObject:key];
                 [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationGET object:[types objectForKey:key]]];
 
@@ -303,7 +310,6 @@ var gHKDataStore = nil;
     
     if ( [oclass readOnly] )
     {
-        CPLog.debug( "HKDataStore::newDataObjectForName->Error: 'Can't create new instances of a read-only data object class'");
         return;
     }
 
@@ -462,6 +468,9 @@ var gHKDataStore = nil;
              [queue performRequest:[self URLRequestForFUNCTIONPOSTOperationForDataObject:[current object] functionName:[current functionName] parameters:[current parameters]]];
              break;
 
+        case HKDataStoreOperationFUNCTIONGETOBJECTS:
+             [queue performRequest:[self URLRequestForFUNCTIONGETOBJECTSOperationForDataObject:[current object] functionName:[current functionName] parameters:[current parameters] objectClass:[current metadata]]];
+             break;
     }
 }
 
@@ -656,6 +665,20 @@ var gHKDataStore = nil;
     [request setHTTPMethod:@"POST"];
     
     [request setParameters:parameters];
+
+    [self addAdditionalHTTPHeadersToRequest:request];
+
+    return request;
+}
+
+- (HKURLRequest)URLRequestForFUNCTIONGETOBJECTSOperationForDataObject:(HKDataObject)object functionName:(CPString)functionName parameters:(CPArray)parameters objectClass:(Class)oclass
+{
+    var base = [self baseURL];
+    var url = base + [object instanceURL] + "/" + functionName + "/" + ( parameters != nil ? [parameters componentsJoinedByString:@"/"] : @"" );
+    var request = nil;
+
+    request = [HKURLRequest requestWithURL:url target:self selector:@selector(FUNCTIONGETOBJECTSOperationDidComplete:) context:oclass];
+    [request setHTTPMethod:@"GET"];
 
     [self addAdditionalHTTPHeadersToRequest:request];
 
@@ -877,6 +900,67 @@ var gHKDataStore = nil;
     
     [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
     
+    idle = true; [self performNextOperation];
+}
+
+- (void)FUNCTIONGETOBJECTSOperationDidComplete:(HKURLResult)result
+{    
+    if ( [result success] )
+    {
+        var context = [result context];
+        var keys = [types allKeysForObject:context]
+
+        if ( [keys count] > 0 )
+        {
+            var key = [keys objectAtIndex:0];
+            var set = [objects objectForKey:key];
+            var newobjects = [CPSet set];
+            var enumerator = nil;
+            var aenumerator = nil;
+            var json = nil;
+            var instance = nil;
+            var attribute = nil;
+
+            if ( [self baseKey] != nil )
+            {
+                var o = [result object]; // expect that [result object] is a JS object
+                enumerator = [o[[self baseKey]] objectEnumerator];
+            }
+            else
+            {
+                enumerator = [[result object] objectEnumerator];
+            }
+
+            [set rehash];
+
+            while ( (json = [enumerator nextObject]) != nil )
+            {
+                instance = [[context alloc] init];
+
+                [instance setupFromJSON:json];
+                [newobjects addObject:instance];
+
+                aenumerator = [[context attributesToObserve] objectEnumerator];
+                
+                while ( (attribute = [aenumerator nextObject]) != nil )
+                {
+                    [instance addObserver:self forKeyPath:attribute options:0 context:nil];
+                }
+            }
+
+            [set unionSet:newobjects];
+            [set intersectSet:newobjects];
+
+            // set now contains all objects from the json fetch
+
+            [self updateControllersForDataObjectName:key];
+
+            [self callObserversWithObjectName:key operation:HKDataStoreOperationGET];
+        }
+    }
+    
+    [[CPNotificationCenter defaultCenter] postNotificationName:HK_ACTION_COMPLETE_NOTIFICATION object:self];
+
     idle = true; [self performNextOperation];
 }
 

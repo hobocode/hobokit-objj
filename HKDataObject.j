@@ -62,7 +62,7 @@
 		oid = -1;
 		sync = YES;
 	}
-	
+
 	return self;
 }
 
@@ -82,15 +82,21 @@
 }
 
 - (void)callPOSTFunctionWithName:(CPString)functionName parameters:(CPDictionary)parameters
-{    
+{
     [[HKDataStore sharedDataStore] queueOperation:[HKDataStoreOperation operationWithType:HKDataStoreOperationFUNCTIONPOST object:self functionName:functionName parameters:parameters]];
 }
+
+- (void)callGETOBJECTSFunctionWithName:(CPString)functionName objectClass:(Class)oclass parameters:(CPArray)parameters
+{
+    [[HKDataStore sharedDataStore] queueOperation:[HKDataStoreOperation operationWithType:HKDataStoreOperationFUNCTIONGETOBJECTS object:self functionName:functionName parameters:parameters metadata:oclass]];
+}
+
 
 - (unsigned)hash
 {
 	if ( oid == -1 )
 		return [super hash];
-		
+
 	return oid;
 }
 
@@ -103,7 +109,7 @@
 {
 	if ( oid == -1 )
 		return [super UID];
-		
+
 	return oid;
 }
 
