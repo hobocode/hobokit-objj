@@ -344,9 +344,6 @@ var gHKDataStore = nil;
 
         set = [objects objectForKey:objectName]; [set addObject:retval];
 
-        CPLog.debug( "HKDataStore::ADD->Object (" + [retval description] + ")");
-        CPLog.debug( "HKDataStore::AFTER_ADD->Objects (" + objectName + "): " + set);
-
         if ( [retval sync] )
         {
             [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationPOST object:retval]];
@@ -368,9 +365,6 @@ var gHKDataStore = nil;
         var set = [objects objectForKey:key];
         
         [set removeObject:object];
-
-        CPLog.debug( "HKDataStore::DELETE->Object (" + object + ")");
-        CPLog.debug( "HKDataStore::AFTER_DELETE->Objects (" + key + "): " + set);
 
         [operations addObject:[HKDataStoreOperation operationWithType:HKDataStoreOperationDELETE object:object]];
 
@@ -429,9 +423,7 @@ var gHKDataStore = nil;
 //
 
 - (void)performNextOperation
-{
-    CPLog.debug( "HKDataStore::performNextOperation (idle='" + idle + "', operations='" + [operations count] + "')");
-    
+{    
     current = nil;
     
     if ( [operations count] == 0 )
@@ -503,8 +495,6 @@ var gHKDataStore = nil;
 
             while ( (controller = [enumerator nextObject]) != nil )
             {
-                CPLog.debug("HKDataStore-> changing content to: " + controller );
-
                 var predicate = [controller filterPredicate];
                 var sortDescriptors = [controller sortDescriptors];
                 
@@ -702,12 +692,9 @@ var gHKDataStore = nil;
     
     if ( ![object sync] )
     {
-        CPLog.debug( "HKDataStore::CHANGE->Object (" + object + ") sync flag off");
         return;
     }
-    
-    CPLog.debug( "HKDataStore::CHANGE->Object (" + object + ") SET '" + keyPath + "' TO '" + object[keyPath] + "'");
-    
+        
     if ( [self hasQueuedOperationOfType:HKDataStoreOperationPUT object:object] )
         return;
         
@@ -759,8 +746,6 @@ var gHKDataStore = nil;
                 enumerator = [[result object] objectEnumerator];
             }
 
-            CPLog.debug( "HKDataStore::AFTER_GET->Objects BEFORE INSERT (" + key + "): " + set);
-
             [set rehash];
 
             while ( (json = [enumerator nextObject]) != nil )
@@ -784,8 +769,6 @@ var gHKDataStore = nil;
             // set now contains all objects from the json fetch
 
             [self updateControllersForDataObjectName:key];
-
-            CPLog.debug( "HKDataStore::AFTER_GET->Objects AFTER INSERT (" + key + "): " + set);
 
             [self callObserversWithObjectName:key operation:HKDataStoreOperationGET];
         }
