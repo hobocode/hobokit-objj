@@ -482,7 +482,7 @@ var gHKDataStore = nil;
 
     while ( (operation = [enumerator nextObject]) != nil )
     {
-        if ( [operation type] == type && [operation object] == object )
+        if ( ([operation type] == type) && [operation object] == object )
             return YES;
     }
 
@@ -718,10 +718,10 @@ var gHKDataStore = nil;
         return;
     }
 
-    if ( [self hasQueuedOperationOfType:HKDataStoreOperationPUT object:object] )
+    if ( [self hasQueuedOperationOfType:HKDataStoreOperationPOST object:object] )
         return;
 
-    if ( [self hasQueuedOperationOfType:HKDataStoreOperationPOST object:object] )
+    if ( [self hasQueuedOperationOfType:HKDataStoreOperationPUT object:object] )
         return;
 
     if ( [object oid] == -1 )

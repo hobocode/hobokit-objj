@@ -28,13 +28,13 @@
 //	Constants
 //
 
-HKDataStoreOperationGET = 0;
-HKDataStoreOperationPOST = 1;
-HKDataStoreOperationPUT = 2;
-HKDataStoreOperationDELETE = 3;
-HKDataStoreOperationFUNCTION = 4;
-HKDataStoreOperationFUNCTIONPOST = 5;
-HKDataStoreOperationFUNCTIONGETOBJECTS = 6;
+HKDataStoreOperationGET = (1 << 0);
+HKDataStoreOperationPOST = (1 << 1);
+HKDataStoreOperationPUT = (1 << 2);
+HKDataStoreOperationDELETE = (1 << 3);
+HKDataStoreOperationFUNCTION = (1 << 4);
+HKDataStoreOperationFUNCTIONPOST = (1 << 5);
+HKDataStoreOperationFUNCTIONGETOBJECTS = (1 << 6);
 
 //
 //	Class implementation
